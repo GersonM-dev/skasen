@@ -9,8 +9,6 @@ use App\Models\Tujuan;
 use App\Models\User;
 use Faker\Factory as Faker;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\PermissionRegistrar;
 
 class DatabaseSeeder extends Seeder
 {
@@ -21,19 +19,8 @@ class DatabaseSeeder extends Seeder
     {
         $faker = Faker::create();
 
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-        $superAdminRole = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
         $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $siswaRole = Role::firstOrCreate(['name' => 'siswa', 'guard_name' => 'web']);
-
-        $aspirasiPermissions = collect([
-            'view_any_aspirasi',
-            'view_aspirasi',
-            'create_aspirasi',
-            'update_aspirasi',
-            'delete_aspirasi',
-        ])->map(fn (string $name) => Permission::firstOrCreate(['name' => $name, 'guard_name' => 'web']));
 
         $tujuan = Tujuan::firstOrCreate(['name' => 'Bimbingan Konseling']);
 
@@ -51,8 +38,7 @@ class DatabaseSeeder extends Seeder
             'password' => 'password',
             'email_verified_at' => now(),
         ]);
-        $admin->syncRoles([$superAdminRole, $adminRole]);
-        $adminRole->syncPermissions($aspirasiPermissions);
+        $admin->syncRoles([$adminRole]);
 
         $users = collect();
 
@@ -65,11 +51,6 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ]);
             $user->syncRoles([$siswaRole]);
-            $siswaRole->givePermissionTo([
-                'view_any_aspirasi',
-                'view_aspirasi',
-                'create_aspirasi',
-            ]);
 
             $users->push($user);
         }
