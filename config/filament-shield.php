@@ -81,7 +81,8 @@ return [
     */
 
     'panel_user' => [
-        'enabled' => false,
+        // Enable a basic role that can access the panel (without super_admin).
+        'enabled' => true,
         'name' => 'panel_user',
     ],
 
