@@ -51,7 +51,7 @@ class AspirasisTable
                     'Belum Ditindaklanjuti' => 'Belum Ditindaklanjuti',
                     'Sedang Ditindaklanjuti' => 'Sedang Ditindaklanjuti',
                     'Selesai' => 'Selesai',
-                ])
+                ])->selectablePlaceholder(false)
                 ->sortable();
         } else {
             $columns[] = TextColumn::make('status')
@@ -85,7 +85,7 @@ class AspirasisTable
                         'Belum Ditindaklanjuti' => 'Belum Ditindaklanjuti',
                         'Sedang Ditindaklanjuti' => 'Sedang Ditindaklanjuti',
                         'Selesai' => 'Selesai',
-                    ]),
+                    ])->selectablePlaceholder(false),
                 TernaryFilter::make('is_anonymous')
                     ->label('Anonim'),
             ])
