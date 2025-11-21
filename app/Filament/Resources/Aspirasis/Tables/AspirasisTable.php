@@ -7,6 +7,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Facades\Filament;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -18,59 +19,66 @@ class AspirasisTable
 {
     public static function configure(Table $table): Table
     {
+        $columns = [
+            TextColumn::make('user.name')
+                ->label('Pengirim')
+                ->formatStateUsing(fn ($state, $record) => self::canViewIdentity($record) ? $state : 'Anonim')
+                ->sortable()
+                ->searchable()
+                ->toggleable(),
+            TextColumn::make('user.nis')
+                ->label('NIS')
+                ->formatStateUsing(fn ($state, $record) => self::canViewIdentity($record) ? $state : 'Anonim')
+                ->sortable()
+                ->searchable()
+                ->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('tujuan.name')
+                ->label('Tujuan')
+                ->badge()
+                ->sortable()
+                ->searchable(),
+            TextColumn::make('kategori.name')
+                ->label('Kategori')
+                ->badge()
+                ->sortable()
+                ->searchable(),
+        ];
+
+        if (self::canManageStatus()) {
+            $columns[] = SelectColumn::make('status')
+                ->label('Status')
+                ->options([
+                    'Belum Ditindaklanjuti' => 'Belum Ditindaklanjuti',
+                    'Sedang Ditindaklanjuti' => 'Sedang Ditindaklanjuti',
+                    'Selesai' => 'Selesai',
+                ])
+                ->sortable();
+        } else {
+            $columns[] = TextColumn::make('status')
+                ->label('Status')
+                ->badge()
+                ->colors([
+                    'warning' => 'Belum Ditindaklanjuti',
+                    'info' => 'Sedang Ditindaklanjuti',
+                    'success' => 'Selesai',
+                ])
+                ->sortable();
+        }
+
+        $columns = [
+            ...$columns,
+            IconColumn::make('is_anonymous')
+                ->label('Anonim')
+                ->boolean(),
+            TextColumn::make('created_at')
+                ->label('Dibuat')
+                ->dateTime()
+                ->sortable()
+                ->toggleable(),
+        ];
+
         return $table
-            ->columns([
-                TextColumn::make('user.name')
-                    ->label('Pengirim')
-                    ->formatStateUsing(fn($state, $record) => self::canViewIdentity($record) ? $state : 'Anonim')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make('user.nis')
-                    ->label('NIS')
-                    ->formatStateUsing(fn($state, $record) => self::canViewIdentity($record) ? $state : 'Anonim')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('tujuan.name')
-                    ->label('Tujuan')
-                    ->badge()
-                    ->sortable()
-                    ->searchable(),
-                TextColumn::make('kategori.name')
-                    ->label('Kategori')
-                    ->badge()
-                    ->sortable()
-                    ->searchable(),
-                // Privileged roles can update status inline; others see a read-only badge.
-                SelectColumn::make('status')
-                    ->label('Status')
-                    ->options([
-                        'Belum Ditindaklanjuti' => 'Belum Ditindaklanjuti',
-                        'Sedang Ditindaklanjuti' => 'Sedang Ditindaklanjuti',
-                        'Selesai' => 'Selesai',
-                    ])
-                    ->visible(fn () => self::canManageStatus())
-                    ->sortable(),
-                TextColumn::make('status')
-                    ->label('Status')
-                    ->badge()
-                    ->colors([
-                        'warning' => 'Belum Ditindaklanjuti',
-                        'info' => 'Sedang Ditindaklanjuti',
-                        'success' => 'Selesai',
-                    ])
-                    ->visible(fn () => ! self::canManageStatus())
-                    ->sortable(),
-                IconColumn::make('is_anonymous')
-                    ->label('Anonim')
-                    ->boolean(),
-                TextColumn::make('created_at')
-                    ->label('Dibuat')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-            ])
+            ->columns($columns)
             ->filters([
                 SelectFilter::make('status')
                     ->options([
@@ -105,7 +113,7 @@ class AspirasisTable
 
     protected static function canManageStatus(): bool
     {
-        $user = auth()->user();
+        $user = Filament::auth()->user();
 
         return $user?->hasAnyRole(['super_admin', 'bk']) ?? false;
     }
