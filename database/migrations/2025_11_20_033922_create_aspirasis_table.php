@@ -14,18 +14,18 @@ return new class extends Migration {
             $table->id();
             // Relasi ke users
             $table->foreignId('user_id')
-                ->constrained()
-                ->onDelete('cascade');
+                ->constrained(table: 'users')
+                ->cascadeOnDelete();
 
             // Relasi ke tujuan
             $table->foreignId('tujuan_id')
-                ->constrained('tujuans')
-                ->onDelete('cascade');
+                ->constrained(table: 'tujuans')
+                ->cascadeOnDelete();
 
             // Relasi ke kategori
             $table->foreignId('kategori_id')
-                ->constrained('kategoris')
-                ->onDelete('cascade');
+                ->constrained(table: 'kategoris')
+                ->cascadeOnDelete();
 
             $table->text('keterangan');
             $table->string('image_path')->nullable();
