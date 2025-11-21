@@ -8,6 +8,7 @@ use Filament\Actions\ViewAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Tables\Filters\SelectFilter;
@@ -41,6 +42,16 @@ class AspirasisTable
                     ->badge()
                     ->sortable()
                     ->searchable(),
+                // Privileged roles can update status inline; others see a read-only badge.
+                SelectColumn::make('status')
+                    ->label('Status')
+                    ->options([
+                        'Belum Ditindaklanjuti' => 'Belum Ditindaklanjuti',
+                        'Sedang Ditindaklanjuti' => 'Sedang Ditindaklanjuti',
+                        'Selesai' => 'Selesai',
+                    ])
+                    ->visible(fn () => self::canManageStatus())
+                    ->sortable(),
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
@@ -49,6 +60,7 @@ class AspirasisTable
                         'info' => 'Sedang Ditindaklanjuti',
                         'success' => 'Selesai',
                     ])
+                    ->visible(fn () => ! self::canManageStatus())
                     ->sortable(),
                 IconColumn::make('is_anonymous')
                     ->label('Anonim')
@@ -88,6 +100,13 @@ class AspirasisTable
 
         $user = auth()->user();
 
-        return $user?->hasAnyRole(['admin', 'siswa']);
+        return $user?->hasAnyRole(['super_admin', 'siswa']);
+    }
+
+    protected static function canManageStatus(): bool
+    {
+        $user = auth()->user();
+
+        return $user?->hasAnyRole(['super_admin', 'bk']) ?? false;
     }
 }
